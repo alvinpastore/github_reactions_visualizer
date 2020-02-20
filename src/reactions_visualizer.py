@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 # data structure to collect the necessary info for the viz
 counters = {'total_reactions':
@@ -34,7 +35,34 @@ for f in os.listdir("../data"):
     counters['total_reactions']['hooray'] += counters['repos_reactions'][repo]['hooray']
     counters['total_reactions']['laugh'] += counters['repos_reactions'][repo]['laugh']
 
-print('a')
+
+x_ticks_labels = list(counters['total_reactions'].keys())
+x = range(len(x_ticks_labels))
+y = list(counters['total_reactions'].values())
+plt.bar(x, y)
+plt.xticks(x, x_ticks_labels)
+plt.title('Total reactions')
+plt.show()
+
+x = np.arange(len(x_ticks_labels))
+width = .1  # the width of the bars
+
+fig, ax = plt.subplots()
+y = {}
+offsets = [-.25, -.15, .15, .25]
+i=0
+
+for repo in counters['repos_reactions'].keys():
+    y[repo] = list(counters['repos_reactions'][repo].values())
+    rects = ax.bar(x + offsets[i], y[repo], width, label=repo)
+    i += 1
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Total')
+ax.set_title('Breakdown by repository')
+ax.set_xticks(x)
+ax.set_xticklabels(x_ticks_labels)
+ax.legend()
+plt.show()
 
 
-plt.bar(counters['total_reactions'].keys(), counters['total_reactions'].values(), width=10, color='g')

@@ -74,11 +74,11 @@ def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
                 break
 
     if output_filepath:
-        with open(output_filepath + '/' + repo_owner+'_'+repo+'.json') as dump_file:
-            json.dump(issues_info, dump_file)
+        with open('../' + output_filepath + '/' + repo_owner+'_'+repo+'.json', 'w') as dump_file:
+            json.dump(issues_info, dump_file,  default=str)  # default=str transforms datetime into string
         pass
     else:
-        pprint.pprint(issues_info, width=60)
+        pprint.pprint(issues_info, width=80)
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ import numpy as np
 counters = {'total_reactions':
             {'+1': 0, '-1': 0, 'heart': 0, 'hooray': 0, 'laugh': 0},
             'comment_reactions': {},
+            'comment_reactions_avg': {},
             'repos_reactions': {},
             'most_inf': {}}
 
@@ -29,20 +30,40 @@ for f in os.listdir("../data"):
         counters['repos_reactions'][repo]['hooray'] += issue['reactions']['hooray']
         counters['repos_reactions'][repo]['laugh'] += issue['reactions']['laugh']
 
+        comments_n = issue['number_of_comments']
+        if comments_n not in counters['comment_reactions']:
+            counters['comment_reactions'][comments_n] = [sum(issue['reactions'].values())]
+        else:
+            counters['comment_reactions'][comments_n].append(sum(issue['reactions'].values()))
+
     counters['total_reactions']['+1'] += counters['repos_reactions'][repo]['+1']
     counters['total_reactions']['-1'] += counters['repos_reactions'][repo]['-1']
     counters['total_reactions']['heart'] += counters['repos_reactions'][repo]['heart']
     counters['total_reactions']['hooray'] += counters['repos_reactions'][repo]['hooray']
     counters['total_reactions']['laugh'] += counters['repos_reactions'][repo]['laugh']
 
+    for comments_n, reacts in counters['comment_reactions'].items():
+        counters['comment_reactions_avg'][comments_n] = sum(reacts)/len(reacts)
 
-x_ticks_labels = list(counters['total_reactions'].keys())
+# x_ticks_labels = list(counters['total_reactions'].keys())
+# x = range(len(x_ticks_labels))
+# y = list(counters['total_reactions'].values())
+# plt.bar(x, y)
+# plt.xticks(x, x_ticks_labels)
+# plt.title('Total reactions')
+# plt.show()
+
+
+
+x_ticks_labels = list(counters['comment_reactions'].keys())
 x = range(len(x_ticks_labels))
-y = list(counters['total_reactions'].values())
+y = list(counters['comment_reactions_avg'].values())
 plt.bar(x, y)
-plt.xticks(x, x_ticks_labels)
-plt.title('Total reactions')
+plt.xticks(x, x_ticks_labels, rotation=90)
+plt.title('Average reactions by comment')
 plt.show()
+
+
 
 x = np.arange(len(x_ticks_labels))
 width = .1  # the width of the bars
@@ -64,5 +85,3 @@ ax.set_xticks(x)
 ax.set_xticklabels(x_ticks_labels)
 ax.legend()
 plt.show()
-
-

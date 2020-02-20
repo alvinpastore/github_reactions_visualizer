@@ -17,53 +17,61 @@ def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
             auth: token for authentication
             output_filepath: folder where to serialize the retrieved issues
     """
-
-    url = 'https://api.github.com/repos/' + repo_owner + '/' + repo_name + '/issues'
+    print('Fetching issues for ' + repo_owner + '/' + repo)
+    issues_info = {}
+    base_url = 'https://api.github.com/repos/' + repo_owner + '/' + repo_name + '/issues'
+    issues_url = base_url + '?state=open'
 
     if not auth:
         with open('../misc/git_token', 'r') as api_token_file:
             auth = api_token_file.readline()
     headers = {'Authorization': 'token ' + auth}
-    issues_request = requests.get(url + '?state=open', headers=headers)
-    issues = issues_request.json()
-    issues_info = {}
 
-    for issue in issues:
-        iid = issue['id']
-        issues_info[iid] = {}
-        issues_info[iid]['author_username'] = issue['user']['login']
-        issues_info[iid]['repository_url'] = issue['repository_url']
-        issues_info[iid]['issue_number'] = issue['number']
-        issues_info[iid]['title'] = issue['title']
-        issues_info[iid]['body'] = issue['body']
-        label_names = [l['name'] for l in issue['labels']]
-        issues_info[iid]['labels'] = label_names
-        issues_info[iid]['number_of_comments'] = issue['comments']
-        date_to_strp = time.strptime(issue['created_at'], '%Y-%m-%dT%H:%M:%SZ')
-        issues_info[iid]['created_at'] = dt.fromtimestamp(mktime(date_to_strp))
+    while len(issues_info) < n:
+        issues_request = requests.get(issues_url, headers=headers)
+        issues = issues_request.json()
+        # update url for next request
+        issues_url = issues_request.links['next']['url']
 
-        issues_info[iid]['reactions'] = {}
-        reactions_url = url + '/' + str(issue['number']) + '/reactions'
-        headers['Accept'] = 'application/vnd.github.squirrel-girl-preview+json'
-        reactions_request = requests.get(reactions_url, headers=headers)
-        reactions = reactions_request.json()
+        for issue in issues:
+            iid = issue['id']
+            issues_info[iid] = {}
+            issues_info[iid]['author_username'] = issue['user']['login']
+            issues_info[iid]['repository_url'] = issue['repository_url']
+            issues_info[iid]['issue_number'] = issue['number']
+            issues_info[iid]['title'] = issue['title']
+            issues_info[iid]['body'] = issue['body']
+            label_names = [l['name'] for l in issue['labels']]
+            issues_info[iid]['labels'] = label_names
+            issues_info[iid]['number_of_comments'] = issue['comments']
+            date_to_strp = time.strptime(issue['created_at'], '%Y-%m-%dT%H:%M:%SZ')
+            issues_info[iid]['created_at'] = dt.fromtimestamp(mktime(date_to_strp))
 
-        reactions_summary = {'total_count': 0,
-                             '+1': 0,
-                             '-1': 0,
-                             'laugh': 0,
-                             'heart': 0,
-                             'hooray': 0}
+            issues_info[iid]['reactions'] = {}
+            reactions_url = base_url + '/' + str(issue['number']) + '/reactions'
+            headers['Accept'] = 'application/vnd.github.squirrel-girl-preview+json'
+            reactions_request = requests.get(reactions_url, headers=headers)
+            reactions = reactions_request.json()
 
-        for reaction in reactions:
-            reactions_summary['total_count'] += 1
+            reactions_summary = {'total_count': 0,
+                                 '+1': 0,
+                                 '-1': 0,
+                                 'laugh': 0,
+                                 'heart': 0,
+                                 'hooray': 0}
 
-            # there are some reactions we are not interested, don't save them
-            if reaction['content'] in reactions_summary.keys():
-                reactions_summary[reaction['content']] += 1
+            for reaction in reactions:
+                reactions_summary['total_count'] += 1
 
-        issues_info[iid]['reactions'] = reactions_summary
+                # there are some reactions we are not interested, don't save them
+                if reaction['content'] in reactions_summary.keys():
+                    reactions_summary[reaction['content']] += 1
 
+            issues_info[iid]['reactions'] = reactions_summary
+
+            # stop fetching when n issues reached
+            if len(issues_info) >= n:
+                break
 
     if output_filepath:
         with open(output_filepath + '/' + repo_owner+'_'+repo+'.json') as dump_file:
@@ -76,6 +84,7 @@ def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
 if __name__ == '__main__':
     owner = 'rust-lang'
     repo = 'rust'
+
     num_issues = 400
 
     fetch(repo, owner, n=num_issues, output_filepath='data')

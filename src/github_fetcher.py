@@ -82,10 +82,22 @@ def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
 
 
 if __name__ == '__main__':
-    owner = 'rust-lang'
-    repo = 'rust'
 
     num_issues = 400
 
+    owner = 'rust-lang'
+    repo = 'rust'
+    fetch(repo, owner, n=num_issues, output_filepath='data')
+
+    owner = 'webpack'
+    repo = 'webpack'
+    fetch(repo, owner, n=num_issues, output_filepath='data')
+
+    owner = 'pytorch'
+    repo = 'pytorch'
+    fetch(repo, owner, n=num_issues, output_filepath='data')
+
+    owner = 'golang'
+    repo = 'go'
     fetch(repo, owner, n=num_issues, output_filepath='data')
 

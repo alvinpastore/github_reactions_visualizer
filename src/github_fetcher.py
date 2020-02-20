@@ -1,6 +1,9 @@
 import requests
 import json
 import pprint
+from datetime import datetime as dt
+from time import mktime
+import time
 
 
 def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
@@ -25,30 +28,26 @@ def fetch(repo_name, repo_owner, n=5, auth=None, output_filepath=None):
     print('Accessing ' + url)
 
     r = requests.get(url, headers=headers)
-    json_info = r.json()
+    issues = r.json()
 
-    # TODO iterate up to n issues and populate issues_info
+    issues_info = {}
 
-    # dummy
-    issues_info = {
-        "author_username": 'STRING',
-        "reactions": {
-            "total_count": 'INT',
-            "+1": 'INT',
-            "-1": 'INT',
-            "laugh": 'INT',
-            "confused": 'INT',
-            "heart": 'INT',
-            "hooray": 'INT'
-        },
-        "repository_url": 'STRING',
-        "issue_number": 'INT',
-        "title": 'STRING',
-        "body": 'STRING',
-        "labels": 'LIST[STRING]  Just label names',
-        "number_of_comments": 'INT',
-        "created_at": 'TIMESTAMP',
-        }
+    for issue in issues:
+        iid = issue['id']
+        issues_info[iid] = {}
+        issues_info[iid]['author_username'] = issue['user']['login']
+        issues_info[iid]['reactions'] = {}  # TODO
+        issues_info[iid]['repository_url'] = issue['repository_url']
+        issues_info[iid]['issue_number'] = issue['number']
+        issues_info[iid]['title'] = issue['title']
+        issues_info[iid]['body'] = issue['body']
+
+        label_names = [l['name'] for l in issue['labels']]
+        issues_info[iid]['labels'] = label_names
+
+        issues_info[iid]['number_of_comments'] = []  # TODO
+        date_to_strp = time.strptime(issue['created_at'], '%Y-%m-%dT%H:%M:%SZ')
+        issues_info[iid]['created_at'] = dt.fromtimestamp(mktime(date_to_strp))
 
     if output_filepath:
         with open(output_filepath + '/' + repo_owner+'_'+repo+'.json') as dump_file:

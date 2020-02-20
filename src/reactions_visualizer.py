@@ -45,15 +45,13 @@ for f in os.listdir("../data"):
     for comments_n, reacts in counters['comment_reactions'].items():
         counters['comment_reactions_avg'][comments_n] = sum(reacts)/len(reacts)
 
-# x_ticks_labels = list(counters['total_reactions'].keys())
-# x = range(len(x_ticks_labels))
-# y = list(counters['total_reactions'].values())
-# plt.bar(x, y)
-# plt.xticks(x, x_ticks_labels)
-# plt.title('Total reactions')
-# plt.show()
-
-
+x_ticks_labels = list(counters['total_reactions'].keys())
+x = range(len(x_ticks_labels))
+y = list(counters['total_reactions'].values())
+plt.bar(x, y)
+plt.xticks(x, x_ticks_labels)
+plt.title('Total reactions')
+plt.show()
 
 x_ticks_labels = list(counters['comment_reactions'].keys())
 x = range(len(x_ticks_labels))
@@ -63,11 +61,8 @@ plt.xticks(x, x_ticks_labels, rotation=90)
 plt.title('Average reactions by comment')
 plt.show()
 
-
-
 x = np.arange(len(x_ticks_labels))
 width = .1  # the width of the bars
-
 fig, ax = plt.subplots()
 y = {}
 offsets = [-.25, -.15, .15, .25]
